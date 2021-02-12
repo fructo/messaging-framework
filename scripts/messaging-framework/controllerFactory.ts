@@ -1,5 +1,72 @@
 'use strict';
 
-export function controllerFactory(): void {
-    throw 'not implemented';
+export function controllerFactory<Protocol>(protocol: Protocol): IControllerClass<Protocol> {
+    class Controller extends StaticController<Protocol> { }
+    return Controller as unknown as IControllerClass<Protocol>;
+}
+
+
+/**
+ * This type defines the public API of a controller.
+ */
+type TControllerPublicApi<Protocol> = IControllerPublicStaticApi;
+
+
+/**
+ * This type represents the message center.
+ */
+type TMessageCenter<Protocol> = unknown;
+
+
+/**
+ * This interface contains the definition of the constructor.
+ */
+interface IControllerClass<Protocol> {
+
+    /**
+     * Constructs the controller.
+     * 
+     * @param center - The message center.
+     */
+    new(center: TMessageCenter<Protocol>): TControllerPublicApi<Protocol>;
+
+}
+
+
+/**
+ * This interface defines the public statically defined API of a controller.
+ */
+export interface IControllerPublicStaticApi {
+
+    /**
+     * Overridable method. Can be used to set up a controller.
+     * 
+     * This method is going to be invoked on attachment.
+     */
+    setUp(): Promise<void>;
+
+}
+
+
+/**
+ * This class contains statically defined methods and constructor for the controllers.
+ */
+abstract class StaticController<Protocol> implements IControllerPublicStaticApi {
+
+    /**
+     * Constructs the base part of a controller.
+     * 
+     * @param center - The message center.
+     */
+    constructor(
+        private readonly center: TMessageCenter<Protocol>
+    ) { }
+
+    /**
+     * @override
+     */
+    public async setUp(): Promise<void> {
+
+    }
+
 }
