@@ -2,8 +2,10 @@
 
 import { IMessage } from './message/IMessage.js';
 import { IMessageFactory } from './message/IMessageFactory.js';
+import { IControllerClass } from './controllerFactory.js';
 import { TSendToApi } from './dynamic-api/TSendToApi.js';
 import { TSendFromApi } from './dynamic-api/TSendFromApi.js';
+import { TControllerPublicApi } from './controllerFactory.js';
 import { TProcessFromApi } from './dynamic-api/TProcessFromApi.js';
 import { TMessageCenterEventName } from './dynamic-api/TMessageCenterEventName.js';
 import { constructSendToApiMethods } from './dynamic-api/SendToApi.js';
@@ -129,6 +131,7 @@ interface IMessageCenterClass<Protocol> {
 
     /**
      * Constructs the center.
+     * Attaches all controllers defined in {@link StaticMessageCenter.CONTROLLERS}.
      */
     new(): TMessageCenterPublicApi<Protocol>;
 
@@ -166,6 +169,11 @@ interface IMessageCenterPublicStaticApi<Protocol> {
      */
     on(eventName: TMessageCenterEventName<Protocol>, listener: (message: unknown) => void): void;
 
+    /**
+     * Registers a controller.
+     */
+    attachController(controller: TSendToApi<Protocol>): void
+
 }
 
 
@@ -173,6 +181,13 @@ interface IMessageCenterPublicStaticApi<Protocol> {
  * This class contains statically defined methods and constructor for the center.
  */
 abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStaticApi<Protocol> {
+
+    /**
+     * Contains classes of controllers.
+     * Overridable.
+     * Presents as an alternative for {@link StaticMessageCenter.attachController}.
+     */
+    protected static readonly CONTROLLERS: Array<unknown> = [];
 
     /**
      * Contains all registered event listeners.
@@ -186,9 +201,14 @@ abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStat
 
     /**
      * Constructs the center.
+     * Attaches all controllers defined in {@link StaticMessageCenter.CONTROLLERS}.
      */
     constructor() {
-
+        const staticFields = this.constructor as unknown as { CONTROLLERS: Array<IControllerClass<Protocol>> };
+        staticFields.CONTROLLERS.forEach(controllerClass => {
+            const controller = new controllerClass(this as TSendToApi<Protocol>);
+            this.attachController(controller);
+        });
     }
 
     /**
@@ -206,6 +226,14 @@ abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStat
         const listeners = this.eventsListeners.get(eventName) || [];
         listeners.push(listener);
         this.eventsListeners.set(eventName, listeners);
+    }
+
+    /**
+     * @override
+     */
+    public attachController(controller: TControllerPublicApi<Protocol>): void {
+        this.controllers.push(controller);
+        void controller.setUp();
     }
 
 }

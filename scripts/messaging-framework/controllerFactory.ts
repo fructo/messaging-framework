@@ -28,7 +28,7 @@ export function controllerFactory<Protocol>(protocol: Protocol): IControllerClas
 /**
  * This type defines the public API of a controller.
  */
-type TControllerPublicApi<Protocol> = IControllerPublicStaticApi & TProcessFromApi<Protocol> & TSendToApi<Protocol>;
+export type TControllerPublicApi<Protocol> = IControllerPublicStaticApi & TProcessFromApi<Protocol> & TSendToApi<Protocol>;
 
 
 /**
@@ -40,7 +40,7 @@ type TMessageCenter<Protocol> = TSendToApi<Protocol>;
 /**
  * This interface contains the definition of the constructor.
  */
-interface IControllerClass<Protocol> {
+export interface IControllerClass<Protocol> {
 
     /**
      * Constructs the controller.
