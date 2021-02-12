@@ -14,8 +14,7 @@ export function controllerFactory<Protocol>(protocol: Protocol): IControllerClas
     );
     const sendToApiMethods = constructSendToApiMethods(protocol, (methodName,) =>
         function (this: IControllerPrivateStaticApi<Protocol>, ...args: Array<unknown>) {
-            const method = this.center[methodName] as unknown as (...args: Array<unknown>) => void;
-            method(...args);
+            (this.center[methodName] as unknown as (...args: Array<unknown>) => void)(...args);
         }
     );
     class Controller extends StaticController<Protocol> { }
