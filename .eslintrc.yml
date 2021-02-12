@@ -20,3 +20,4 @@ rules:
   tsdoc/syntax: warn
   semi: ["error", "always"]
   "@typescript-eslint/no-empty-function": off
+  "@typescript-eslint/no-unused-vars": off

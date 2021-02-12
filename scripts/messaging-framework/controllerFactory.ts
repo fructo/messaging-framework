@@ -1,7 +1,17 @@
 'use strict';
 
+import { TProcessFromApi } from './dynamic-api/TProcessFromApi.js';
+import { constructProcessFromApiMethods } from './dynamic-api/ProcessFromApi.js';
+
+
 export function controllerFactory<Protocol>(protocol: Protocol): IControllerClass<Protocol> {
+    const processFromApiMethods = constructProcessFromApiMethods(protocol, (methodName) =>
+        function (this: IControllerPrivateStaticApi<Protocol>, ...args: Array<unknown>) {
+
+        }
+    );
     class Controller extends StaticController<Protocol> { }
+    Object.assign(Controller.prototype, processFromApiMethods);
     return Controller as unknown as IControllerClass<Protocol>;
 }
 
@@ -9,7 +19,7 @@ export function controllerFactory<Protocol>(protocol: Protocol): IControllerClas
 /**
  * This type defines the public API of a controller.
  */
-type TControllerPublicApi<Protocol> = IControllerPublicStaticApi;
+type TControllerPublicApi<Protocol> = IControllerPublicStaticApi & TProcessFromApi<Protocol>;
 
 
 /**
@@ -29,6 +39,22 @@ interface IControllerClass<Protocol> {
      * @param center - The message center.
      */
     new(center: TMessageCenter<Protocol>): TControllerPublicApi<Protocol>;
+
+}
+
+
+/**
+ * This interface defines the private statically defined API of a controller.
+ * 
+ * @remarks
+ * All methods and properties should be treated as private.
+ */
+interface IControllerPrivateStaticApi<Protocol> {
+
+    /**
+     * The message center.
+     */
+    center: TMessageCenter<Protocol>
 
 }
 
