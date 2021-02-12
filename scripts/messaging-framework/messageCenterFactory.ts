@@ -1,8 +1,14 @@
 'use strict';
 
+import { IMessage } from './message/IMessage.js';
+import { IMessageFactory } from './message/IMessageFactory.js';
 import { TSendToApi } from './dynamic-api/TSendToApi.js';
+import { TSendFromApi } from './dynamic-api/TSendFromApi.js';
+import { TProcessFromApi } from './dynamic-api/TProcessFromApi.js';
 import { TMessageCenterEventName } from './dynamic-api/TMessageCenterEventName.js';
 import { constructSendToApiMethods } from './dynamic-api/SendToApi.js';
+import { constructSendFromApiMethods } from './dynamic-api/SendFromApi.js';
+import { convertToPascalCase } from './extra/extra-utils.js';
 
 
 export function messageCenterFactory<Protocol>(protocol: Protocol): IMessageCenterClass<Protocol> {
@@ -11,9 +17,102 @@ export function messageCenterFactory<Protocol>(protocol: Protocol): IMessageCent
             this.dispatchEvent(eventName, message);
         }
     );
+    const messagesHeadersMap = constructEventToHeaderToFactoryMap(protocol);
+    const sendFromApiMethods = constructSendFromApiMethods(protocol, (methodName, eventName) =>
+        function (this: IMessageCenterPrivateStaticApi<Protocol>, message) {
+            try {
+                const factoriesMap = messagesHeadersMap.get(eventName) || new Map();
+                validateMessage(message, factoriesMap);
+            } catch (error) {
+                this.dispatchEvent('protocol-error', error);
+                return;
+            }
+            this.dispatchEvent(eventName, message);
+            const processFromMethodName = constructProcessingMethodName(methodName, message);
+            this.controllers.forEach(controller => void (async () => {
+                try {
+                    const result = await (controller[processFromMethodName] as (message: unknown) => Promise<unknown>)(message);
+                    if (result) {
+                        this.dispatchEvent('controller-result', result);
+                    }
+                } catch (error) {
+                    this.dispatchEvent('controller-error', error);
+                }
+            })());
+        }
+    );
     class MessageCenter extends StaticMessageCenter<Protocol> { }
     Object.assign(MessageCenter.prototype, sendToApiMethods);
+    Object.assign(MessageCenter.prototype, sendFromApiMethods);
     return MessageCenter as unknown as IMessageCenterClass<Protocol>;
+}
+
+
+/**
+ * @example
+ * ```ts
+ * class MessagesFactory {
+ *   static ECHO_ME = {
+ *     create({ greeting }: { greeting: string }): { greeting: string } {
+ *       return { greeting }; 
+ *     }
+ *   }
+ * }
+ * 
+ * const PROTOCOL = {
+ *   ALLOWED_MESSAGES_FROM_SOMEWHERE: [MessagesFactory]
+ * };
+ * 
+ * const headersMap = constructEventToHeaderToFactoryMap(PROTOCOL); // => { 'message-from-somewhere': { 'echo-me': <ECHO_ME factory> } }
+ * ```
+ */
+function constructEventToHeaderToFactoryMap<Protocol>(protocol: Protocol): Map<string, Map<string, IMessageFactory<IMessage>>> {
+    const headersMap = new Map<string, Map<string, IMessageFactory<IMessage>>>();
+    const protocolKeys = Object.keys(protocol).filter(key => key.startsWith('ALLOWED_MESSAGES_FROM_')) as Array<keyof Protocol & string>;
+    for (const key of protocolKeys) {
+        const eventName = `message-${key.replace('ALLOWED_MESSAGES_', '').replaceAll('_', '-').toLowerCase()}`;
+        const factoriesMap = new Map<string, IMessageFactory<IMessage>>();
+        const factories = protocol[key] as unknown as Array<{ [key: string]: unknown }>;
+        for (const factory of factories) {
+            const factoryMessagesKeys = Object.keys(factory).filter(key => key.toUpperCase() === key);
+            for (const factoryKey of factoryMessagesKeys) {
+                const messageHeader = factoryKey.toLowerCase().replaceAll('_', '-');
+                const messageFactory = factory[factoryKey] as IMessageFactory<IMessage>;
+                factoriesMap.set(messageHeader, messageFactory);
+            }
+        }
+        headersMap.set(eventName, factoriesMap);
+    }
+    return headersMap;
+}
+
+
+/**
+ * @throws An exception if a message is invalid.
+ */
+function validateMessage(message: unknown, factoriesMap: Map<string, IMessageFactory<IMessage>>) {
+    if (typeof message !== 'object') {
+        throw 'Message is not an object';
+    }
+    if (message === null) {
+        throw 'Message cannot be null';
+    }
+    const messageFactory = factoriesMap.get((message as IMessage).header);
+    if (messageFactory) {
+        messageFactory.validate(message as IMessage);
+    } else {
+        throw 'Unknown message';
+    }
+}
+
+
+function constructProcessingMethodName<Protocol>(
+    sendFromMethodName: keyof TSendFromApi<Protocol>,
+    message: unknown
+): keyof TProcessFromApi<Protocol> {
+    const messageName = convertToPascalCase((message as { header: string }).header, '-');
+    const methodName = `processFrom${sendFromMethodName.replace(/^sendFrom/, '')}Message${messageName}`;
+    return methodName as keyof TProcessFromApi<Protocol>;
 }
 
 
@@ -45,6 +144,11 @@ interface IMessageCenterClass<Protocol> {
 interface IMessageCenterPrivateStaticApi<Protocol> {
 
     /**
+     * Contains all registered controllers.
+     */
+    readonly controllers: Array<TSendToApi<Protocol> & TProcessFromApi<Protocol>>;
+
+    /**
      * Passes an event to specified event listeners.
      */
     dispatchEvent(eventName: TMessageCenterEventName<Protocol>, event: unknown): void;
@@ -74,6 +178,11 @@ abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStat
      * Contains all registered event listeners.
      */
     private readonly eventsListeners = new Map<TMessageCenterEventName<Protocol>, Array<(event: unknown) => void>>();
+
+    /**
+     * Contains all registered controllers.
+     */
+    private readonly controllers: Array<TSendToApi<Protocol> & TProcessFromApi<Protocol>> = [];
 
     /**
      * Constructs the center.
