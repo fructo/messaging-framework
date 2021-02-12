@@ -1,6 +1,8 @@
 'use strict';
 
+import { TSendToApi } from './dynamic-api/TSendToApi.js';
 import { TProcessFromApi } from './dynamic-api/TProcessFromApi.js';
+import { constructSendToApiMethods } from './dynamic-api/SendToApi.js';
 import { constructProcessFromApiMethods } from './dynamic-api/ProcessFromApi.js';
 
 
@@ -10,8 +12,15 @@ export function controllerFactory<Protocol>(protocol: Protocol): IControllerClas
 
         }
     );
+    const sendToApiMethods = constructSendToApiMethods(protocol, (methodName,) =>
+        function (this: IControllerPrivateStaticApi<Protocol>, ...args: Array<unknown>) {
+            const method = this.center[methodName] as unknown as (...args: Array<unknown>) => void;
+            method(...args);
+        }
+    );
     class Controller extends StaticController<Protocol> { }
     Object.assign(Controller.prototype, processFromApiMethods);
+    Object.assign(Controller.prototype, sendToApiMethods);
     return Controller as unknown as IControllerClass<Protocol>;
 }
 
@@ -19,13 +28,13 @@ export function controllerFactory<Protocol>(protocol: Protocol): IControllerClas
 /**
  * This type defines the public API of a controller.
  */
-type TControllerPublicApi<Protocol> = IControllerPublicStaticApi & TProcessFromApi<Protocol>;
+type TControllerPublicApi<Protocol> = IControllerPublicStaticApi & TProcessFromApi<Protocol> & TSendToApi<Protocol>;
 
 
 /**
  * This type represents the message center.
  */
-type TMessageCenter<Protocol> = unknown;
+type TMessageCenter<Protocol> = TSendToApi<Protocol>;
 
 
 /**
