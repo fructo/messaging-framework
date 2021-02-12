@@ -59,3 +59,32 @@ test('Controller\'s "processFrom" method is overridable', async t => {
     const controller = new MyController(center);
     await controller.processFromMyFirstDirectionMessageSayHi(MyFirstDirectionMessages.SAY_HI.create({}));
 });
+
+test('Controller has a "sendTo" method', t => {
+    class MyCenter extends messageCenterFactory(PROTOCOL) { }
+    class MyController extends controllerFactory(PROTOCOL) { }
+    const center = new MyCenter();
+    const controller = new MyController(center);
+    t.true('sendToMyFirstDirectionMessageSayHi' in controller);
+});
+
+test('Controller\'s "sendTo" method is callable', t => {
+    class MyCenter extends messageCenterFactory(PROTOCOL) { }
+    class MyController extends controllerFactory(PROTOCOL) { }
+    const center = new MyCenter();
+    const controller = new MyController(center);
+    t.notThrows(() => controller.sendToMyFirstDirectionMessageSayHi(MyFirstDirectionMessages.SAY_HI.create({})));
+});
+
+test('Controller\'s "sendTo" method passed a message to the center', t => {
+    const MESSAGE = MyFirstDirectionMessages.SAY_HI.create({});
+    class MyCenter extends messageCenterFactory(PROTOCOL) {
+        public readonly sendToMyFirstDirectionMessageSayHi = (message: Partial<IMessageSayHi>) => {
+            t.pass();
+        }
+    }
+    class MyController extends controllerFactory(PROTOCOL) { }
+    const center = new MyCenter();
+    const controller = new MyController(center);
+    controller.sendToMyFirstDirectionMessageSayHi(MESSAGE);
+});
