@@ -118,3 +118,12 @@ test('MessageCenter attaches controllers defined in the "CONTROLLERS" property',
     const center = new MessageCenter();
     center.sendFromMyFirstDirection(MyFirstDirectionMessages.SAY_HI.create({}));
 });
+
+test('MessageCenter dispatches an event (sendTo)', t => {
+    const center = new (messageCenterFactory(PROTOCOL));
+    const MESSAGE = MyFirstDirectionMessages.SAY_HI.create({});
+    center.on('message-to-my-first-direction', (message) => {
+        t.is(message, MESSAGE);
+    });
+    center.sendToMyFirstDirectionMessageSayHi(MESSAGE);
+});
