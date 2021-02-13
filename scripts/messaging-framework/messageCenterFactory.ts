@@ -127,7 +127,7 @@ type TMessageCenterPublicApi<Protocol> = IMessageCenterPublicStaticApi<Protocol>
 /**
  * This interface contains the definition of the constructor.
  */
-interface IMessageCenterClass<Protocol> {
+export interface IMessageCenterClass<Protocol> {
 
     /**
      * Constructs the center.
