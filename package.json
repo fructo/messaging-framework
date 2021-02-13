@@ -2,7 +2,7 @@
     "private": true,
     "name": "@fructo/messaging-framework",
     "author": "The Fructo Authors",
-    "description": "A simple messaging framework used by the Fructo project",
+    "description": "A simple messaging framework that defines the architecture of a modular application",
     "license": "MIT",
     "type": "module",
     "files": [
