@@ -1,0 +1,6 @@
+'use strict';
+
+export const PROTOCOL = {
+    ALLOWED_MESSAGES_FROM_FIRST_APPLICATION: [],
+    ALLOWED_MESSAGES_TO_FIRST_APPLICATION: []
+};
