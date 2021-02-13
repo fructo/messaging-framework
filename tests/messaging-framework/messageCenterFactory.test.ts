@@ -88,3 +88,13 @@ test('MessageCenter redirects a message from "sendFrom" to "processFrom"', async
     center.attachController(new MyController(center));
     center.sendFromMyFirstDirection(MESSAGE);
 });
+
+test('MessageCenter invokes setUp method on attachment', t => {
+    const center = new (messageCenterFactory({}));
+    class MyController extends controllerFactory({}) {
+        async setUp() {
+            t.pass();
+        }
+    }
+    center.attachController(new MyController(center));
+});
