@@ -98,3 +98,23 @@ test('MessageCenter invokes setUp method on attachment', t => {
     }
     center.attachController(new MyController(center));
 });
+
+test('MessageCenter has attachController() method', t => {
+    const center = new (messageCenterFactory({}));
+    t.true('attachController' in center);
+});
+
+test('MessageCenter attaches controllers defined in the "CONTROLLERS" property', t => {
+    class MyController extends controllerFactory(PROTOCOL) {
+        public readonly processFromMyFirstDirectionMessageSayHi = async (message: IMessageSayHi) => {
+            t.pass();
+        }
+    }
+    class MessageCenter extends messageCenterFactory(PROTOCOL) {
+        protected static readonly CONTROLLERS = [
+            MyController
+        ];
+    }
+    const center = new MessageCenter();
+    center.sendFromMyFirstDirection(MyFirstDirectionMessages.SAY_HI.create({}));
+});
