@@ -6,11 +6,6 @@ import { IMessage } from './IMessage.js';
 export interface IMessageFactory<Message extends IMessage> {
 
     /**
-     * Message's header.
-     */
-    readonly header: string;
-
-    /**
      * Constructs a message.
      * 
      * @param properties - Adjustable message properties.
