@@ -3,6 +3,7 @@
     "exclude": [
         "coverage",
         "**/tests/**",
+        "**/examples/**",
         "**/*.d.ts",
         "**/{I,T}*",
         "**/extra-types*"
