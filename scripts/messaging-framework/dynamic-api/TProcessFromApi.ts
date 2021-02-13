@@ -19,7 +19,7 @@ import { FilterFields, PascalCase, Replace } from '../extra/extra-types.js';
  * };
  * 
  * 
- * type api = TProcessFromApi<typeof PROTOCOL>; // => { processFromSomewhereMessageEchoMe(message: { greeting: string }) => Promise<void> }
+ * type api = TProcessFromApi<typeof PROTOCOL>; // => { processFromSomewhereMessageEchoMe(message: { greeting: string }) => Promise<unknown> }
  * ```
  */
 export type TProcessFromApi<Protocol> = UnionToIntersection<{
@@ -29,7 +29,7 @@ export type TProcessFromApi<Protocol> = UnionToIntersection<{
         ]: {
             +readonly [MessageName in keyof MessagesFactory
             as FormProcessMethodName<Key, FilterUppercase<MessageName>>
-            ]: (message: ExtractFunctionReturnType<(MessagesFactory[MessageName] & { create: unknown })['create']>) => Promise<void>;
+            ]: (message: ExtractFunctionReturnType<(MessagesFactory[MessageName] & { create: unknown })['create']>) => Promise<unknown>;
         }
     }[Key];
 }[keyof FilterFields<Protocol, 'ALLOWED_MESSAGES_FROM_'>]>;
