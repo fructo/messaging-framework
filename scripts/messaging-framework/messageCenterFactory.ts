@@ -119,7 +119,7 @@ function constructProcessingMethodName<Protocol>(
 
 
 /**
- * This type defines the public API of a controller.
+ * This type defines the public API of a message center.
  */
 type TMessageCenterPublicApi<Protocol> = IMessageCenterPublicStaticApi<Protocol> & TSendToApi<Protocol> & TSendFromApi<Protocol>;
 
@@ -160,7 +160,7 @@ interface IMessageCenterPrivateStaticApi<Protocol> {
 
 
 /**
- * This interface defines the public statically defined API of a controller.
+ * This interface defines the public statically defined API of a message center.
  */
 interface IMessageCenterPublicStaticApi<Protocol> {
 
