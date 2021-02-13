@@ -6,3 +6,12 @@
 A simple messaging framework that defines the architecture of a modular application.
 
 The project is platform-independent, so it can be used in Node.js (version >= 15), Deno, and web browser environments.
+
+## Overview
+
+### Advantages
+- Provides protocol encapsulation by dynamically injecting methods whose names include the direction and header of the message.
+- Provides types for the injected methods.
+
+### Disadvantages
+- Loss in performance compared to monolithic architectures.
