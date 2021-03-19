@@ -7,5 +7,4 @@ export type TMessageCenterEventName<Protocol> =
     TEventName<Protocol, 'TO'> |
     TEventName<Protocol, 'FROM'> |
     'protocol-error' |
-    'controller-error' |
-    'controller-result';
+    'controller-error';

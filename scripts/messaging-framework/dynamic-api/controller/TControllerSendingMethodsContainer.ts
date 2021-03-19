@@ -1,6 +1,6 @@
 'use strict';
 
-import { FilterFields, PascalCase, Replace } from '../extra/extra-types.js';
+import { FilterFields, PascalCase, Replace } from '../../extra/extra-types.js';
 
 
 /**
@@ -19,12 +19,12 @@ import { FilterFields, PascalCase, Replace } from '../extra/extra-types.js';
  * };
  * 
  * 
- * type api = TSendToApi<typeof PROTOCOL>; // => { sendToSomewhereMessageEchoMe(message: { greeting: string }) => void }
+ * type api = TControllerSendingMethodsContainer<typeof PROTOCOL>; // => { sendToSomewhereMessageEchoMe(message: { greeting: string }) => void }
  * ```
  */
-export type TSendToApi<Protocol> = UnionToIntersection<Record<string, unknown> | {
-    [Key in keyof FilterFields<Protocol, 'ALLOWED_MESSAGES_TO_'>]: {
-        [MessagesFactory in ((Protocol[Key] & Array<unknown>)[number])
+export type TControllerSendingMethodsContainer<TProtocol> = UnionToIntersection<Record<string, unknown> | {
+    [Key in keyof FilterFields<TProtocol, 'ALLOWED_MESSAGES_TO_'>]: {
+        [MessagesFactory in ((TProtocol[Key] & Array<unknown>)[number])
         as Key
         ]: {
             -readonly [MessageName in keyof MessagesFactory
@@ -32,7 +32,7 @@ export type TSendToApi<Protocol> = UnionToIntersection<Record<string, unknown> |
             ]: ReplaceFunctionReturnType<(MessagesFactory[MessageName] & { create: unknown })['create'], void>;
         }
     }[Key];
-}[keyof FilterFields<Protocol, 'ALLOWED_MESSAGES_TO_'>]>;
+}[keyof FilterFields<TProtocol, 'ALLOWED_MESSAGES_TO_'>]>;
 
 type ReplaceFunctionReturnType<F, NewType> = F extends (...args: infer Args) => unknown ? (...args: Args) => NewType : never;
 

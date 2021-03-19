@@ -1,6 +1,6 @@
 'use strict';
 
-import { FilterFields, PascalCase, Replace } from '../extra/extra-types.js';
+import { FilterFields, PascalCase, Replace } from '../../extra/extra-types.js';
 
 
 /**
@@ -19,12 +19,12 @@ import { FilterFields, PascalCase, Replace } from '../extra/extra-types.js';
  * };
  * 
  * 
- * type api = TProcessFromApi<typeof PROTOCOL>; // => { processFromSomewhereMessageEchoMe(message: { greeting: string }) => Promise<unknown> }
+ * type api = TControllerProcessingMethodsContainer<typeof PROTOCOL>; // => { processFromSomewhereMessageEchoMe(message: { greeting: string }) => Promise<unknown> }
  * ```
  */
-export type TProcessFromApi<Protocol> = UnionToIntersection<{
-    [Key in keyof FilterFields<Protocol, 'ALLOWED_MESSAGES_FROM_'>]: {
-        [MessagesFactory in ((Protocol[Key] & Array<unknown>)[number])
+export type TControllerProcessingMethodsContainer<TProtocol> = UnionToIntersection<{
+    [Key in keyof FilterFields<TProtocol, 'ALLOWED_MESSAGES_FROM_'>]: {
+        [MessagesFactory in ((TProtocol[Key] & Array<unknown>)[number])
         as Key
         ]: {
             +readonly [MessageName in keyof MessagesFactory
@@ -32,7 +32,7 @@ export type TProcessFromApi<Protocol> = UnionToIntersection<{
             ]: (message: ExtractFunctionReturnType<(MessagesFactory[MessageName] & { create: unknown })['create']>) => Promise<unknown>;
         }
     }[Key];
-}[keyof FilterFields<Protocol, 'ALLOWED_MESSAGES_FROM_'>]>;
+}[keyof FilterFields<TProtocol, 'ALLOWED_MESSAGES_FROM_'>]>;
 
 type FilterUppercase<Str> = Str extends string ? Str extends Uppercase<Str> ? Str : never : never;
 

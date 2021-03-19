@@ -1,52 +1,57 @@
 'use strict';
 
-import { TSendToApi } from './dynamic-api/TSendToApi.js';
-import { TProcessFromApi } from './dynamic-api/TProcessFromApi.js';
-import { constructSendToApiMethods } from './dynamic-api/SendToApi.js';
-import { constructProcessFromApiMethods } from './dynamic-api/ProcessFromApi.js';
+import { TControllerProcessingMethodsContainer } from './dynamic-api/controller/TControllerProcessingMethodsContainer.js';
+import { TControllerSendingMethodsContainer } from './dynamic-api/controller/TControllerSendingMethodsContainer.js';
+import { createControllerProcessingMethodsContainer } from './dynamic-api/controller/ControllerProcessingMethodsContainer.js';
+import { createControllerSendingMethodsContainer } from './dynamic-api/controller/ControllerSendingMethodsContainer.js';
+
+import { TCenterSendingMethodsContainer } from './dynamic-api/center/TCenterSendingMethodsContainer.js';
+import { createCenterSendingMethodName } from './dynamic-api/center/CenterSendingMethodsContainer.js';
 
 
-export function controllerFactory<Protocol>(protocol: Protocol): IControllerClass<Protocol> {
-    const processFromApiMethods = constructProcessFromApiMethods(protocol, (methodName) =>
-        function (this: IControllerPrivateStaticApi<Protocol>, ...args: Array<unknown>) {
-
+export function controllerFactory<TProtocol>(protocol: TProtocol): IControllerClass<TProtocol> {
+    const processingMethodsContainer = createControllerProcessingMethodsContainer(protocol, () =>
+        function (this: IControllerPrivateStaticApi<TProtocol>, message: unknown) {
+            // This method should be empty because it is overridable.
         }
     );
-    const sendToApiMethods = constructSendToApiMethods(protocol, (methodName,) =>
-        function (this: IControllerPrivateStaticApi<Protocol>, ...args: Array<unknown>) {
-            (this.center[methodName] as unknown as (...args: Array<unknown>) => void)(...args);
-        }
-    );
-    class Controller extends StaticController<Protocol> { }
-    Object.assign(Controller.prototype, processFromApiMethods);
-    Object.assign(Controller.prototype, sendToApiMethods);
-    return Controller as unknown as IControllerClass<Protocol>;
+    const sendingMethodsContainer = createControllerSendingMethodsContainer(protocol, (direction, messageFactory) => {
+        const centerSendingMethodName = createCenterSendingMethodName<TProtocol>(direction);
+        return function (this: IControllerPrivateStaticApi<TProtocol>, rawMessage: unknown) {
+            const message = messageFactory.create(rawMessage);
+            this.center[centerSendingMethodName](message);
+        };
+    });
+    class Controller extends StaticController<TProtocol> { }
+    Object.assign(Controller.prototype, processingMethodsContainer);
+    Object.assign(Controller.prototype, sendingMethodsContainer);
+    return Controller as unknown as IControllerClass<TProtocol>;
 }
 
 
 /**
  * This type defines the public API of a controller.
  */
-export type TControllerPublicApi<Protocol> = IControllerPublicStaticApi & TProcessFromApi<Protocol> & TSendToApi<Protocol>;
+export type TControllerPublicApi<TProtocol> = IControllerPublicStaticApi & TControllerProcessingMethodsContainer<TProtocol> & TControllerSendingMethodsContainer<TProtocol>;
 
 
 /**
  * This type represents the message center.
  */
-type TMessageCenter<Protocol> = TSendToApi<Protocol>;
+export type TMessageCenter<TProtocol> = TCenterSendingMethodsContainer<TProtocol>;
 
 
 /**
  * This interface contains the definition of the constructor.
  */
-export interface IControllerClass<Protocol> {
+export interface IControllerClass<TProtocol> {
 
     /**
      * Constructs the controller.
      * 
      * @param center - The message center.
      */
-    new(center: TMessageCenter<Protocol>): TControllerPublicApi<Protocol>;
+    new(center: TMessageCenter<TProtocol>): TControllerPublicApi<TProtocol>;
 
 }
 
@@ -57,12 +62,12 @@ export interface IControllerClass<Protocol> {
  * @remarks
  * All methods and properties should be treated as private.
  */
-interface IControllerPrivateStaticApi<Protocol> {
+interface IControllerPrivateStaticApi<TProtocol> {
 
     /**
      * The message center.
      */
-    center: TMessageCenter<Protocol>
+    center: TMessageCenter<TProtocol>
 
 }
 
@@ -85,7 +90,7 @@ export interface IControllerPublicStaticApi {
 /**
  * This class contains statically defined methods and constructor for the controllers.
  */
-abstract class StaticController<Protocol> implements IControllerPublicStaticApi {
+abstract class StaticController<TProtocol> implements IControllerPublicStaticApi {
 
     /**
      * Constructs the base part of a controller.
@@ -93,7 +98,7 @@ abstract class StaticController<Protocol> implements IControllerPublicStaticApi 
      * @param center - The message center.
      */
     constructor(
-        private readonly center: TMessageCenter<Protocol>
+        private readonly center: TMessageCenter<TProtocol>
     ) { }
 
     /**

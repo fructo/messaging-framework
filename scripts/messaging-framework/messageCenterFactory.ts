@@ -1,139 +1,69 @@
 'use strict';
 
-import { IMessage } from './message/IMessage.js';
-import { IMessageFactory } from './message/IMessageFactory.js';
-import { IControllerClass } from './controllerFactory.js';
-import { TSendToApi } from './dynamic-api/TSendToApi.js';
-import { TSendFromApi } from './dynamic-api/TSendFromApi.js';
-import { TControllerPublicApi } from './controllerFactory.js';
-import { TProcessFromApi } from './dynamic-api/TProcessFromApi.js';
 import { TMessageCenterEventName } from './dynamic-api/TMessageCenterEventName.js';
-import { constructSendToApiMethods } from './dynamic-api/SendToApi.js';
-import { constructSendFromApiMethods } from './dynamic-api/SendFromApi.js';
-import { convertToPascalCase } from './extra/extra-utils.js';
+import { TCenterProcessingMethodsContainer } from './dynamic-api/center/TCenterProcessingMethodsContainer.js';
+import { TCenterSendingMethodsContainer } from './dynamic-api/center/TCenterSendingMethodsContainer.js';
+import { createCenterSendingMethodsContainer } from './dynamic-api/center/CenterSendingMethodsContainer.js';
+import { createCenterProcessingMethodsContainer } from './dynamic-api/center/CenterProcessingMethodsContainer.js';
+
+import { TMessageCenter, TControllerPublicApi, IControllerClass } from './controllerFactory.js';
 
 
-export function messageCenterFactory<Protocol>(protocol: Protocol): IMessageCenterClass<Protocol> {
-    const sendToApiMethods = constructSendToApiMethods(protocol, (methodName, eventName) =>
-        function (this: IMessageCenterPrivateStaticApi<Protocol>, message) {
+export function messageCenterFactory<TProtocol>(protocol: TProtocol): IMessageCenterClass<TProtocol> {
+    const sendingMethodsContainer = createCenterSendingMethodsContainer(protocol, (methodName, eventName) =>
+        function (this: IMessageCenterPrivateStaticApi<TProtocol>, message: unknown) {
             this.dispatchEvent(eventName, message);
         }
     );
-    const messagesHeadersMap = constructEventToHeaderToFactoryMap(protocol);
-    const sendFromApiMethods = constructSendFromApiMethods(protocol, (methodName, eventName) =>
-        function (this: IMessageCenterPrivateStaticApi<Protocol>, message) {
-            try {
-                const factoriesMap = messagesHeadersMap.get(eventName) || new Map();
-                validateMessage(message, factoriesMap);
-            } catch (error) {
-                this.dispatchEvent('protocol-error', error);
-                return;
-            }
-            this.dispatchEvent(eventName, message);
-            const processFromMethodName = constructProcessingMethodName(methodName, message);
-            this.controllers.forEach(controller => void (async () => {
-                try {
-                    const result = await (controller[processFromMethodName] as (message: unknown) => Promise<unknown>)(message);
-                    if (result) {
-                        this.dispatchEvent('controller-result', result);
+    const processingMethodsContainer = createCenterProcessingMethodsContainer(protocol, (methodName, eventName, headersMap) => {
+        return function (this: IMessageCenterPrivateStaticApi<TProtocol>, message: unknown) {
+            if (typeof message === 'object' && message && message.constructor.name === 'Object' && typeof (message as { header: unknown }).header === 'string') {
+                const [messageFactory, processingMethodName] = headersMap.get((message as { header: string }).header) || [];
+                if (messageFactory && processingMethodName) {
+                    const errors = messageFactory.validate(message);
+                    if (errors.length > 0) {
+                        this.dispatchEvent('protocol-error', errors);
+                        return;
                     }
-                } catch (error) {
-                    this.dispatchEvent('controller-error', error);
+                    this.dispatchEvent(eventName, message);
+                    this.controllers.forEach(controller => {
+                        void (async () => {
+                            try {
+                                await (controller as { [key: string]: (message: unknown) => Promise<void> })[processingMethodName](message);
+                            } catch (error) {
+                                this.dispatchEvent('controller-error', [error]);
+                            }
+                        })();
+                    });
+                    return;
                 }
-            })());
-        }
-    );
-    class MessageCenter extends StaticMessageCenter<Protocol> { }
-    Object.assign(MessageCenter.prototype, sendToApiMethods);
-    Object.assign(MessageCenter.prototype, sendFromApiMethods);
-    return MessageCenter as unknown as IMessageCenterClass<Protocol>;
-}
-
-
-/**
- * @example
- * ```ts
- * class MessagesFactory {
- *   static ECHO_ME = {
- *     create({ greeting }: { greeting: string }): { greeting: string } {
- *       return { greeting }; 
- *     }
- *   }
- * }
- * 
- * const PROTOCOL = {
- *   ALLOWED_MESSAGES_FROM_SOMEWHERE: [MessagesFactory]
- * };
- * 
- * const headersMap = constructEventToHeaderToFactoryMap(PROTOCOL); // => { 'message-from-somewhere': { 'echo-me': <ECHO_ME factory> } }
- * ```
- */
-function constructEventToHeaderToFactoryMap<Protocol>(protocol: Protocol): Map<string, Map<string, IMessageFactory<IMessage>>> {
-    const headersMap = new Map<string, Map<string, IMessageFactory<IMessage>>>();
-    const protocolKeys = Object.keys(protocol).filter(key => key.startsWith('ALLOWED_MESSAGES_FROM_')) as Array<keyof Protocol & string>;
-    for (const key of protocolKeys) {
-        const eventName = `message-${key.replace('ALLOWED_MESSAGES_', '').replaceAll('_', '-').toLowerCase()}`;
-        const factoriesMap = new Map<string, IMessageFactory<IMessage>>();
-        const factories = protocol[key] as unknown as Array<{ [key: string]: unknown }>;
-        for (const factory of factories) {
-            const factoryMessagesKeys = Object.keys(factory).filter(key => key.toUpperCase() === key);
-            for (const factoryKey of factoryMessagesKeys) {
-                const messageHeader = factoryKey.toLowerCase().replaceAll('_', '-');
-                const messageFactory = factory[factoryKey] as IMessageFactory<IMessage>;
-                factoriesMap.set(messageHeader, messageFactory);
             }
-        }
-        headersMap.set(eventName, factoriesMap);
-    }
-    return headersMap;
-}
-
-
-/**
- * @throws An exception if a message is invalid.
- */
-function validateMessage(message: unknown, factoriesMap: Map<string, IMessageFactory<IMessage>>) {
-    if (typeof message !== 'object') {
-        throw 'Message is not an object';
-    }
-    if (message === null) {
-        throw 'Message cannot be null';
-    }
-    const messageFactory = factoriesMap.get((message as IMessage).header);
-    if (messageFactory) {
-        messageFactory.validate(message as IMessage);
-    } else {
-        throw 'Unknown message';
-    }
-}
-
-
-function constructProcessingMethodName<Protocol>(
-    sendFromMethodName: keyof TSendFromApi<Protocol>,
-    message: unknown
-): keyof TProcessFromApi<Protocol> {
-    const messageName = convertToPascalCase((message as { header: string }).header, '-');
-    const methodName = `processFrom${sendFromMethodName.replace(/^sendFrom/, '')}Message${messageName}`;
-    return methodName as keyof TProcessFromApi<Protocol>;
+            this.dispatchEvent('protocol-error', [/** TODO: unknown message */]);
+        };
+    });
+    class MessageCenter extends StaticMessageCenter<TProtocol> { }
+    Object.assign(MessageCenter.prototype, sendingMethodsContainer);
+    Object.assign(MessageCenter.prototype, processingMethodsContainer);
+    return MessageCenter as unknown as IMessageCenterClass<TProtocol>;
 }
 
 
 /**
  * This type defines the public API of a message center.
  */
-type TMessageCenterPublicApi<Protocol> = IMessageCenterPublicStaticApi<Protocol> & TSendToApi<Protocol> & TSendFromApi<Protocol>;
+type TMessageCenterPublicApi<TProtocol> = IMessageCenterPublicStaticApi<TProtocol> & TCenterSendingMethodsContainer<TProtocol> & TCenterProcessingMethodsContainer<TProtocol>;
 
 
 /**
  * This interface contains the definition of the constructor.
  */
-export interface IMessageCenterClass<Protocol> {
+export interface IMessageCenterClass<TProtocol> {
 
     /**
      * Constructs the center.
      * Attaches all controllers defined in {@link StaticMessageCenter.CONTROLLERS}.
      */
-    new(): TMessageCenterPublicApi<Protocol>;
+    new(): TMessageCenterPublicApi<TProtocol>;
 
 }
 
@@ -144,17 +74,17 @@ export interface IMessageCenterClass<Protocol> {
  * @remarks
  * All methods and properties should be treated as private.
  */
-interface IMessageCenterPrivateStaticApi<Protocol> {
+interface IMessageCenterPrivateStaticApi<TProtocol> {
 
     /**
      * Contains all registered controllers.
      */
-    readonly controllers: Array<TSendToApi<Protocol> & TProcessFromApi<Protocol>>;
+    readonly controllers: Array<TControllerPublicApi<TProtocol>>;
 
     /**
      * Passes an event to specified event listeners.
      */
-    dispatchEvent(eventName: TMessageCenterEventName<Protocol>, event: unknown): void;
+    dispatchEvent(eventName: TMessageCenterEventName<TProtocol>, event: unknown): void;
 
 }
 
@@ -162,17 +92,17 @@ interface IMessageCenterPrivateStaticApi<Protocol> {
 /**
  * This interface defines the public statically defined API of a message center.
  */
-interface IMessageCenterPublicStaticApi<Protocol> {
+interface IMessageCenterPublicStaticApi<TProtocol> {
 
     /**
      * Attaches an event listener.
      */
-    on(eventName: TMessageCenterEventName<Protocol>, listener: (message: unknown) => void): void;
+    on(eventName: TMessageCenterEventName<TProtocol>, listener: (message: unknown) => void): void;
 
     /**
      * Registers a controller.
      */
-    attachController(controller: TSendToApi<Protocol>): void
+    attachController(controller: TControllerPublicApi<TProtocol>): void
 
 }
 
@@ -180,33 +110,33 @@ interface IMessageCenterPublicStaticApi<Protocol> {
 /**
  * This class contains statically defined methods and constructor for the center.
  */
-abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStaticApi<Protocol> {
+abstract class StaticMessageCenter<TProtocol> implements IMessageCenterPublicStaticApi<TProtocol> {
 
     /**
      * Contains classes of controllers.
      * Overridable.
      * Presents as an alternative for {@link StaticMessageCenter.attachController}.
      */
-    protected static readonly CONTROLLERS: Array<unknown> = [];
+    protected static readonly CONTROLLERS: Array<IControllerClass<unknown>> = [];
 
     /**
      * Contains all registered event listeners.
      */
-    private readonly eventsListeners = new Map<TMessageCenterEventName<Protocol>, Array<(event: unknown) => void>>();
+    private readonly eventsListeners = new Map<TMessageCenterEventName<TProtocol>, Array<(event: unknown) => void>>();
 
     /**
      * Contains all registered controllers.
      */
-    private readonly controllers: Array<TSendToApi<Protocol> & TProcessFromApi<Protocol>> = [];
+    private readonly controllers: Array<TControllerPublicApi<TProtocol>> = [];
 
     /**
      * Constructs the center.
      * Attaches all controllers defined in {@link StaticMessageCenter.CONTROLLERS}.
      */
     constructor() {
-        const staticFields = this.constructor as unknown as { CONTROLLERS: Array<IControllerClass<Protocol>> };
+        const staticFields = this.constructor as unknown as { CONTROLLERS: Array<IControllerClass<TProtocol>> };
         staticFields.CONTROLLERS.forEach(controllerClass => {
-            const controller = new controllerClass(this as TSendToApi<Protocol>);
+            const controller = new controllerClass(this as unknown as TMessageCenter<TProtocol>);
             this.attachController(controller);
         });
     }
@@ -214,7 +144,7 @@ abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStat
     /**
      * Passes an event to specified event listeners.
      */
-    private dispatchEvent(eventName: TMessageCenterEventName<Protocol>, event: unknown): void {
+    private dispatchEvent(eventName: TMessageCenterEventName<TProtocol>, event: unknown): void {
         const listeners = this.eventsListeners.get(eventName) || [];
         listeners.forEach(listener => listener(event));
     }
@@ -222,7 +152,7 @@ abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStat
     /**
      * @override
      */
-    public on(eventName: TMessageCenterEventName<Protocol>, listener: (event: unknown) => void): void {
+    public on(eventName: TMessageCenterEventName<TProtocol>, listener: (event: unknown) => void): void {
         const listeners = this.eventsListeners.get(eventName) || [];
         listeners.push(listener);
         this.eventsListeners.set(eventName, listeners);
@@ -231,7 +161,7 @@ abstract class StaticMessageCenter<Protocol> implements IMessageCenterPublicStat
     /**
      * @override
      */
-    public attachController(controller: TControllerPublicApi<Protocol>): void {
+    public attachController(controller: TControllerPublicApi<TProtocol>): void {
         this.controllers.push(controller);
         void controller.setUp();
     }

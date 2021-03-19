@@ -17,6 +17,6 @@ export interface IMessageFactory<Message extends IMessage> {
      * 
      * @param message - A message to be checked.
      */
-    validate(message: IMessage): void;
+    validate(message: unknown): Array<unknown>;
 
 }
