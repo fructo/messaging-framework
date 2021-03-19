@@ -15,9 +15,9 @@ const firstApp = new FirstApplication();
 const secondApp = new SecondApplication();
 
 firstApp.on('message-to-second-application', (message) => {
-    secondApp.sendFromFirstApplication(message);
+    secondApp.processFromFirstApplication(message);
 });
 
 secondApp.on('message-to-first-application', (message) => {
-    firstApp.sendFromSecondApplication(message);
+    firstApp.processFromSecondApplication(message);
 });

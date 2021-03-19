@@ -22,10 +22,3 @@ app.on('protocol-error', (error) => {
 app.on('controller-error', (error) => {
 
 });
-
-/**
- * A message processing method of a controller returned a value.
- */
-app.on('controller-result', (value) => {
-
-});
