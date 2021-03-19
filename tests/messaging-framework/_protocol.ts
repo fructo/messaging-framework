@@ -13,10 +13,11 @@ export class MyFirstDirectionMessages {
         create(messageBase: Partial<IMessageSayHi>): IMessageSayHi {
             return { header: 'say-hi', ...messageBase };
         },
-        validate(message: unknown): void {
+        validate(message: unknown): Array<unknown> {
             if (!(typeof message === 'object' && (message as IMessage).header === 'say-hi')) {
-                throw new Error('Invalid message header');
+                return [{}];
             }
+            return [];
         }
     }
 
@@ -32,10 +33,11 @@ export class MySecondDirectionMessages {
         create(messageBase: Partial<IMessageEcho>): IMessageEcho {
             return { header: 'echo', ...messageBase };
         },
-        validate(message: unknown): void {
+        validate(message: unknown): Array<unknown> {
             if (!(typeof message === 'object' && (message as IMessage).header === 'echo')) {
-                throw new Error('Invalid message header');
+                return [{}];
             }
+            return [];
         }
     }
 

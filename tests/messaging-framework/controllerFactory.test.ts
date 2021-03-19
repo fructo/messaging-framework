@@ -76,10 +76,10 @@ test('Controller\'s "sendTo" method is callable', t => {
     t.notThrows(() => controller.sendToMyFirstDirectionMessageSayHi(MyFirstDirectionMessages.SAY_HI.create({})));
 });
 
-test('Controller\'s "sendTo" method passed a message to the center', t => {
+test('Controller\'s "sendTo" method transfers a message to the center', t => {
     const MESSAGE = MyFirstDirectionMessages.SAY_HI.create({});
     class MyCenter extends messageCenterFactory(PROTOCOL) {
-        public readonly sendToMyFirstDirectionMessageSayHi = (message: Partial<IMessageSayHi>) => {
+        public readonly sendToMyFirstDirection = (message: unknown) => {
             t.pass();
         }
     }
