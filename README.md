@@ -43,7 +43,7 @@ The project is platform-independent, so it can be used in Node.js (version >= 15
 
 |||
 | --- | --- |
-| **Syntax**      | center.sendFrom`DirectionInPascalCase`(message)
+| **Syntax**      | center.processFrom`DirectionInPascalCase`(message)
 | **Description** | Validates and forwards a message received from a specified direction to controllers.
 | **Events**      | `message-from-{direction}`, `protocol-error`, `controller-error`, `controller-result`
 
