@@ -11,11 +11,13 @@
         "!dist/examples"
     ],
     "scripts": {
+        "prebuild": "fsc ./tests/messaging-framework/protocol.json --outFile ./tests/messaging-framework/_protocol.ts",
         "build": "tsc",
         "test": "c8 ava",
         "lint": "eslint scripts tests"
     },
     "devDependencies": {
+        "@fructo/schema-compiler": "1.0.0-alpha.0",
         "@typescript-eslint/eslint-plugin": "latest",
         "@typescript-eslint/parser": "latest",
         "ava": "latest",

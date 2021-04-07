@@ -1,0 +1,36 @@
+{
+    "IMessage": {
+        "@properties": {
+            "header": "TString"
+        }
+    },
+    "IMessageSayHi": {
+        "@ancestors": "IMessage",
+        "@properties": {
+            "header": "'say-hi'"
+        }
+    },
+    "IMessageEcho": {
+        "@ancestors": "IMessage",
+        "@properties": {
+            "header": "'echo'"
+        }
+    },
+    "MyFirstDirectionMessages": {
+        "@properties": {
+            "SAY_HI": "IMessageSayHi"
+        }
+    },
+    "MySecondDirectionMessages": {
+        "@properties": {
+            "ECHO": "IMessageEcho"
+        }
+    },
+    "PROTOCOL": {
+        "@properties": {
+            "ALLOWED_MESSAGES_TO_MY_FIRST_DIRECTION": "[MyFirstDirectionMessages]",
+            "ALLOWED_MESSAGES_FROM_MY_FIRST_DIRECTION": "[MyFirstDirectionMessages]",
+            "ALLOWED_MESSAGES_FROM_MY_SECOND_DIRECTION": "[MySecondDirectionMessages]"
+        }
+    }
+}
