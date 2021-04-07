@@ -38,7 +38,7 @@ export function messageCenterFactory<TProtocol>(protocol: TProtocol): IMessageCe
                     return;
                 }
             }
-            this.dispatchEvent('protocol-error', [/** TODO: unknown message */]);
+            this.dispatchEvent('protocol-error', [{ description: 'unknown_message', message }]);
         };
     });
     class MessageCenter extends StaticMessageCenter<TProtocol> { }
