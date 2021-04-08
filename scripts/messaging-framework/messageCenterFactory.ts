@@ -134,11 +134,21 @@ abstract class StaticMessageCenter<TProtocol> implements IMessageCenterPublicSta
      * Attaches all controllers defined in {@link StaticMessageCenter.CONTROLLERS}.
      */
     constructor() {
+        void this.setUp();
         const staticFields = this.constructor as unknown as { CONTROLLERS: Array<IControllerClass<TProtocol>> };
         staticFields.CONTROLLERS.forEach(controllerClass => {
             const controller = new controllerClass(this as unknown as TMessageCenter<TProtocol>);
             this.attachController(controller);
         });
+    }
+
+    /**
+     * Overridable method.
+     * Can be used to set up the message center.
+     * Will be started before the controllers are set up.
+     */
+    protected async setUp(): Promise<void> {
+        // overridable
     }
 
     /**
