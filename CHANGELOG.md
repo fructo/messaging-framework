@@ -7,6 +7,7 @@
   - Dynamic properties that begin with the word `sendTo`. These functions redirect messages to the message center.
   - Overridable dynamic properties that begin with the word `processFrom`. These functions receive messages from the message center.
 - Center:
+  - Overridable static property `CONTROLLERS`. Can be used to specify controller classes.
   - Method `attachController`.
   - Dynamic methods that begin with the word `sendTo`. These functions redirect messages to other directions.
   - Dynamic methods that begin with the word `processFrom`. These functions pass a message to the message center.
