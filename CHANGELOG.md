@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.0-alpha.1] - 2020-04-08
+### Added
+- Center:
+  - Overridable protected method `setUp`.
+
 ## [1.0.0-alpha.0] - 2020-04-08
 ### Added
 - Controller:
