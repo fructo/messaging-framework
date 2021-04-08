@@ -9,6 +9,11 @@ A simple messaging framework that defines the architecture of a modular applicat
 
 The project is platform-independent, so it can be used in Node.js (version >= 15), Deno, and web browser environments.
 
+## Installation
+```console
+npm install --save @fructo/messaging-framework
+```
+
 ## Overview
 
 ### Advantages
