@@ -79,6 +79,15 @@ test('MessageCenter invokes setUp method on attachment', t => {
     center.attachController(new MyController(center));
 });
 
+test('MessageCenter triggers setUp method on creation', t => {
+    class MessageCenter extends messageCenterFactory(PROTOCOL) {
+        async setUp() {
+            t.pass();
+        }
+    }
+    new MessageCenter();
+});
+
 test('MessageCenter has attachController() method', t => {
     const center = new (messageCenterFactory({}));
     t.true('attachController' in center);
