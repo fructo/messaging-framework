@@ -5,6 +5,8 @@
 
 [>>Issue Tracker<<](https://github.com/fructo/fructo/issues)
 
+**WARNING**: The framework is not yet ready for use. We release alpha versions for the internal needs of the Fructo project. Alpha versions can be backward incompatible.
+
 A simple messaging framework that defines the architecture of a modular application.
 
 The project is platform-independent, so it can be used in Node.js (version >= 15), Deno, and web browser environments.
