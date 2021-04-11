@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.0-alpha.2] - 2020-04-11
+### Changed
+- Rename `messageCenterFactory` to `messageCenterClassFactory`.
+- Rename `controllerFactory` to `controllerClassFactory`.
+
 ## [1.0.0-alpha.1] - 2020-04-08
 ### Added
 - Center:
