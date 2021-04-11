@@ -2,7 +2,7 @@
 
 import test from 'ava';
 
-import { controllerClassFactory, messageCenterFactory } from '@fructo/messaging-framework';
+import { controllerClassFactory, messageCenterClassFactory } from '@fructo/messaging-framework';
 
 import { PROTOCOL, IMessageSayHi, MyFirstDirectionMessages } from './_protocol.js';
 
@@ -30,7 +30,7 @@ test('Controller\'s setUp() method is overridable', async t => {
 });
 
 test('Controller has "processFrom" methods', t => {
-    class MyCenter extends messageCenterFactory(PROTOCOL) { }
+    class MyCenter extends messageCenterClassFactory(PROTOCOL) { }
     class MyController extends controllerClassFactory(PROTOCOL) { }
     const center = new MyCenter();
     const controller = new MyController(center);
@@ -39,7 +39,7 @@ test('Controller has "processFrom" methods', t => {
 });
 
 test('Controller\'s "processFrom" method is callable', async t => {
-    class MyCenter extends messageCenterFactory(PROTOCOL) { }
+    class MyCenter extends messageCenterClassFactory(PROTOCOL) { }
     class MyController extends controllerClassFactory(PROTOCOL) { }
     const center = new MyCenter();
     const controller = new MyController(center);
@@ -47,7 +47,7 @@ test('Controller\'s "processFrom" method is callable', async t => {
 });
 
 test('Controller\'s "processFrom" method is overridable', async t => {
-    class MyCenter extends messageCenterFactory(PROTOCOL) { }
+    class MyCenter extends messageCenterClassFactory(PROTOCOL) { }
     class MyController extends controllerClassFactory(PROTOCOL) {
 
         public readonly processFromMyFirstDirectionMessageSayHi = async (message: IMessageSayHi) => {
@@ -61,7 +61,7 @@ test('Controller\'s "processFrom" method is overridable', async t => {
 });
 
 test('Controller has a "sendTo" method', t => {
-    class MyCenter extends messageCenterFactory(PROTOCOL) { }
+    class MyCenter extends messageCenterClassFactory(PROTOCOL) { }
     class MyController extends controllerClassFactory(PROTOCOL) { }
     const center = new MyCenter();
     const controller = new MyController(center);
@@ -69,7 +69,7 @@ test('Controller has a "sendTo" method', t => {
 });
 
 test('Controller\'s "sendTo" method is callable', t => {
-    class MyCenter extends messageCenterFactory(PROTOCOL) { }
+    class MyCenter extends messageCenterClassFactory(PROTOCOL) { }
     class MyController extends controllerClassFactory(PROTOCOL) { }
     const center = new MyCenter();
     const controller = new MyController(center);
@@ -78,7 +78,7 @@ test('Controller\'s "sendTo" method is callable', t => {
 
 test('Controller\'s "sendTo" method transfers a message to the center', t => {
     const MESSAGE = MyFirstDirectionMessages.SAY_HI.create({});
-    class MyCenter extends messageCenterFactory(PROTOCOL) {
+    class MyCenter extends messageCenterClassFactory(PROTOCOL) {
         public readonly sendToMyFirstDirection = (message: unknown) => {
             t.pass();
         }

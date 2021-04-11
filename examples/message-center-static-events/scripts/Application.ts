@@ -1,9 +1,9 @@
 'use strict';
 
-import { messageCenterFactory } from '@fructo/messaging-framework';
+import { messageCenterClassFactory } from '@fructo/messaging-framework';
 
 
-class Application extends messageCenterFactory({}) {
+class Application extends messageCenterClassFactory({}) {
 
 }
 

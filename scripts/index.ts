@@ -2,11 +2,11 @@
 
 import { IMessage } from './messaging-framework/message/IMessage.js';
 import { controllerClassFactory } from './messaging-framework/controllerClassFactory.js';
-import { messageCenterFactory } from './messaging-framework/messageCenterFactory.js';
+import { messageCenterClassFactory } from './messaging-framework/messageCenterClassFactory.js';
 
 
 export {
     IMessage,
     controllerClassFactory,
-    messageCenterFactory
+    messageCenterClassFactory
 };

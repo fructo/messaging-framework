@@ -8,7 +8,7 @@ import * as module from '@fructo/messaging-framework';
 function testModuleExports() {
     const EXPORTS = [
         'controllerClassFactory',
-        'messageCenterFactory'
+        'messageCenterClassFactory'
     ];
     EXPORTS.forEach(unit => {
         test(`The module exports ${unit}`, t => {

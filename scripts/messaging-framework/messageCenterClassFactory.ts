@@ -9,7 +9,7 @@ import { createCenterProcessingMethodsContainer } from './dynamic-api/center/Cen
 import { TMessageCenter, TControllerPublicApi, IControllerClass } from './controllerClassFactory.js';
 
 
-export function messageCenterFactory<TProtocol>(protocol: TProtocol): IMessageCenterClass<TProtocol> {
+export function messageCenterClassFactory<TProtocol>(protocol: TProtocol): IMessageCenterClass<TProtocol> {
     const sendingMethodsContainer = createCenterSendingMethodsContainer(protocol, (methodName, eventName) =>
         function (this: IMessageCenterPrivateStaticApi<TProtocol>, message: unknown) {
             this.dispatchEvent(eventName, message);
