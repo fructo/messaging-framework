@@ -6,7 +6,7 @@ import { TCenterSendingMethodsContainer } from './dynamic-api/center/TCenterSend
 import { createCenterSendingMethodsContainer } from './dynamic-api/center/CenterSendingMethodsContainer.js';
 import { createCenterProcessingMethodsContainer } from './dynamic-api/center/CenterProcessingMethodsContainer.js';
 
-import { TMessageCenter, TControllerPublicApi, IControllerClass } from './controllerFactory.js';
+import { TMessageCenter, TControllerPublicApi, IControllerClass } from './controllerClassFactory.js';
 
 
 export function messageCenterFactory<TProtocol>(protocol: TProtocol): IMessageCenterClass<TProtocol> {

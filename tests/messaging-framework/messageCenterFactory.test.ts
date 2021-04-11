@@ -2,7 +2,7 @@
 
 import test from 'ava';
 
-import { controllerFactory, messageCenterFactory } from '@fructo/messaging-framework';
+import { controllerClassFactory, messageCenterFactory } from '@fructo/messaging-framework';
 
 import { PROTOCOL, IMessageSayHi, MyFirstDirectionMessages } from './_protocol.js';
 
@@ -18,7 +18,7 @@ test('MessageCenter dispatches "controller-error" event', async t => {
     center.on('controller-error', (error) => {
         t.deepEqual(error, [ERROR]);
     });
-    class MyController extends controllerFactory(PROTOCOL) {
+    class MyController extends controllerClassFactory(PROTOCOL) {
 
         /**
          * @override
@@ -55,7 +55,7 @@ test('MessageCenter dispatches an event (processFrom)', t => {
 test('MessageCenter redirects a message from the center to a controller', async t => {
     const center = new (messageCenterFactory(PROTOCOL));
     const MESSAGE = MyFirstDirectionMessages.SAY_HI.create({});
-    class MyController extends controllerFactory(PROTOCOL) {
+    class MyController extends controllerClassFactory(PROTOCOL) {
 
         /**
          * @override
@@ -71,7 +71,7 @@ test('MessageCenter redirects a message from the center to a controller', async 
 
 test('MessageCenter invokes setUp method on attachment', t => {
     const center = new (messageCenterFactory({}));
-    class MyController extends controllerFactory({}) {
+    class MyController extends controllerClassFactory({}) {
         async setUp() {
             t.pass();
         }
@@ -94,7 +94,7 @@ test('MessageCenter has attachController() method', t => {
 });
 
 test('MessageCenter attaches controllers defined in the "CONTROLLERS" property', t => {
-    class MyController extends controllerFactory(PROTOCOL) {
+    class MyController extends controllerClassFactory(PROTOCOL) {
         public readonly processFromMyFirstDirectionMessageSayHi = async (message: IMessageSayHi) => {
             t.pass();
         }

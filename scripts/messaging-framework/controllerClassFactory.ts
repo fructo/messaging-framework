@@ -9,7 +9,7 @@ import { TCenterSendingMethodsContainer } from './dynamic-api/center/TCenterSend
 import { createCenterSendingMethodName } from './dynamic-api/center/CenterSendingMethodsContainer.js';
 
 
-export function controllerFactory<TProtocol>(protocol: TProtocol): IControllerClass<TProtocol> {
+export function controllerClassFactory<TProtocol>(protocol: TProtocol): IControllerClass<TProtocol> {
     const processingMethodsContainer = createControllerProcessingMethodsContainer(protocol, () =>
         function (this: IControllerPrivateStaticApi<TProtocol>, message: unknown) {
             // This method should be empty because it is overridable.
