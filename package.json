@@ -17,7 +17,7 @@
         "lint": "eslint scripts tests"
     },
     "devDependencies": {
-        "@fructo/schema-compiler": "1.0.0-alpha.0",
+        "@fructo/schema-compiler": "1.0.0-alpha.4",
         "@typescript-eslint/eslint-plugin": "latest",
         "@typescript-eslint/parser": "latest",
         "ava": "latest",
