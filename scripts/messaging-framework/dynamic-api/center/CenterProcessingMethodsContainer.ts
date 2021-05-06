@@ -1,7 +1,7 @@
 'use strict';
 
 import { TCenterProcessingMethodsContainer } from './TCenterProcessingMethodsContainer.js';
-import { convertToPascalCase } from '../../extra/extra-utils.js';
+import { collectClassKeys, convertToPascalCase } from '../../extra/extra-utils.js';
 import { TEventName } from '../TEventName.js';
 import { IMessageFactory } from '../../message/IMessageFactory.js';
 import { IMessage } from '../../message/IMessage.js';
@@ -54,8 +54,7 @@ function createCenterProcessingMethodsNamesAndEventsNames<TProtocol>(
 function createMessagesHeadersMap(direction: string, messagesFactoriesClasses: Array<TMessagesFactoryClass>) {
     const map = new Map<string, [IMessageFactory<IMessage>, string]>();
     messagesFactoriesClasses.forEach(factoryClass => {
-        Object
-            .keys(factoryClass)
+        collectClassKeys(factoryClass)
             .filter(factoryKey => factoryKey === factoryKey.toUpperCase())
             .forEach(factoryKey => {
                 const messageHeader = factoryKey.toLocaleLowerCase().replaceAll('_', '-');

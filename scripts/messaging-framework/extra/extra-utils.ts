@@ -18,3 +18,11 @@ export function convertToPascalCase<T extends string, S extends string>(str: T, 
         .map(word => word.replace(/^\w/, firstLetter => firstLetter.toUpperCase()))
         .join('');
 }
+
+export function collectClassKeys(klass: unknown): Array<string> {
+    const keys: Array<string> = [];
+    for (const key in klass as Record<string, unknown>) {
+        keys.push(key);
+    }
+    return keys;
+}

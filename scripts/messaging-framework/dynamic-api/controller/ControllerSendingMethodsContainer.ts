@@ -1,7 +1,7 @@
 'use strict';
 
 import { TControllerSendingMethodsContainer } from './TControllerSendingMethodsContainer.js';
-import { convertToPascalCase } from '../../extra/extra-utils.js';
+import { collectClassKeys, convertToPascalCase } from '../../extra/extra-utils.js';
 import { IMessageFactory } from '../../message/IMessageFactory.js';
 import { IMessage } from '../../message/IMessage.js';
 
@@ -42,7 +42,7 @@ function createControllerSendingMethodsNamesAndDirectionsFromProtocolKey<TProtoc
     const typedProtocolValue = protocol[protocolKey] as unknown as Array<TMessagesFactoryClass>;
     const processingMethodsNames = typedProtocolValue
         .map(messagesFactoryClass =>
-            Object.keys(messagesFactoryClass)
+            collectClassKeys(messagesFactoryClass)
                 .filter(factoryClassKey => factoryClassKey === factoryClassKey.toUpperCase())
                 .map(factoryClassKey => [`send${convertToPascalCase(direction, '_')}Message${convertToPascalCase(factoryClassKey, '_')}`, direction, messagesFactoryClass[factoryClassKey]]))
         .flatMap(x => x);
