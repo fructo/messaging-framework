@@ -1,6 +1,6 @@
 {
     "name": "@fructo/messaging-framework",
-    "version": "1.0.0-alpha.2",
+    "version": "1.0.0-alpha.3",
     "author": "The Fructo Authors",
     "description": "A simple messaging framework that defines the architecture of a modular application",
     "license": "MIT",

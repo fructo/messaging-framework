@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.0-alpha.3] - 2020-05-06
+### Fixed
+- If a message group has an ancestor, its messages now belong to the group.
+
 ## [1.0.0-alpha.2] - 2020-04-11
 ### Changed
 - Rename `messageCenterFactory` to `messageCenterClassFactory`.
